@@ -32,6 +32,7 @@ function AuthProvider({ children }) {
     const login = (role) => {
         setIsLoggedIn(true)
         setIsAdmin(role == 'admin')
+        console.log(isLoggedIn)
     }
     // purpose of this function is to login the user
     // this can be consumed by the login component

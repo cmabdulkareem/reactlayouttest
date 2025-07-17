@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import Card from '../components/Card'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 function HomePage() {
+  const navigate = useNavigate()
 
   const [products, setProducts] = useState([])
 

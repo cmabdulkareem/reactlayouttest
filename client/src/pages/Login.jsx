@@ -1,8 +1,15 @@
-import React, {useState} from 'react'
+import React, {useState, useContext, useEffect} from 'react'
 import Footer from '../partials/Footer'
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import {toast, ToastContainer} from 'react-toastify';
+import { AuthContext } from '../context/AuthContext';
 
 function Login() {
+
+  const {login, logout, isLoggedIn, isAdmin, loading} = useContext(AuthContext)
+
+  const navigate = useNavigate()
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,15 +18,25 @@ function Login() {
     e.preventDefault()
     axios.post('http://localhost:3000/login', {email, password}, {withCredentials: true})
       .then((res)=>{
-        console.log(res.data.message)
+        toast.success(res.data.message)
+        login(res.data.role)
+        navigate('/')
       })
       .catch((err)=>{
-        console.error(err)
+        toast.error(err.response.data)
       })
   }
 
+  useEffect(()=>{
+    console.log({login, logout, isLoggedIn, isAdmin, loading})
+    if(isLoggedIn){
+      navigate('/')
+    }
+  }, [isLoggedIn])
+
   return (
     <div>
+      <ToastContainer />
       <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
         <h1>Login Form</h1>
         <form onSubmit={handleSubmit}>
