@@ -1,7 +1,20 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import { NavLink } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
+import axios from 'axios';
 
 function Header() {
+
+    const { logout } = useContext(AuthContext);
+
+    function handleLogout() {
+        axios.get('http://localhost:3000/logout', { withCredentials: true })
+            .then((res) => {
+                logout();
+            })
+            .catch(err => console.error(err));
+    }
+
     return (
         <header className="p-3 mb-3 border-bottom">
             {" "}
@@ -27,7 +40,7 @@ function Header() {
                     <ul className="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                         {" "}
                         <li>
-                            <NavLink to="/" className="nav-link px-2 link-secondary">
+                            <NavLink to="/admin/" className="nav-link px-2 link-secondary">
                                 Dashboard
                             </NavLink>
                         </li>{" "}
@@ -89,7 +102,7 @@ function Header() {
                                 <hr className="dropdown-divider" />
                             </li>{" "}
                             <li>
-                                <a className="dropdown-item" href="#">
+                                <a className="dropdown-item" href="#" onClick={handleLogout}>
                                     Sign out
                                 </a>
                             </li>{" "}

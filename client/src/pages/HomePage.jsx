@@ -6,14 +6,14 @@ function HomePage() {
 
   const [products, setProducts] = useState([])
 
-  useEffect(()=>{
+  useEffect(() => {
     axios.get("http://localhost:3000/findAllProducts")
-      .then((response)=>{
+      .then((response) => {
         console.log(response.data)
         setProducts(response.data)
       })
-      .catch((err)=>{console.error(err)})
-  },[])
+      .catch((err) => { console.error(err) })
+  }, [])
 
 
   return (
@@ -21,8 +21,13 @@ function HomePage() {
       <div className="row">
         <h1>This is home page</h1>
         {products.map((product) => (
-          <div className="col-md-4" key={product.id}>
-            <Card title={product.Title} price={product.Price} image={product.image} />
+          <div className="col-md-4" key={product._id}>
+            <Card
+              title={product.itemName}
+              description={product.itemDesc}
+              price={product.itemPrice}
+              image={`http://localhost:3000/images/products/${product._id}.jpg`}
+            />
           </div>
         ))}
       </div>

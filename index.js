@@ -4,7 +4,14 @@ import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import cookieParser from 'cookie-parser'
+import fileUpload from 'express-fileupload'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
 const app = express()
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 app.use(cookieParser())
 app.use(cors({
@@ -14,8 +21,10 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }))
 app.use(express.json())
+app.use(fileUpload())
+app.use(express.static('public'))
 
-mongoose.connect('mongodb://127.0.0.1:27017/testapp')
+mongoose.connect('mongodb://127.0.0.1:27017/ecomapp')
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.log(err))
 
@@ -23,7 +32,7 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
-    userRole: {
+    role: {
         type: String,
         default: 'admin'
     }
@@ -31,8 +40,13 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema)
 
-let otp = String(Math.floor(Math.random() * 999999))
-let storedOtp = ''
+const productSchema = new mongoose.Schema({
+    itemName: String,
+    itemDesc: String,
+    itemPrice: Number
+})
+
+const Product = mongoose.model('Product', productSchema)
 
 app.post('/register', async (req, res) => {
     const {name, email, password } = req.body
@@ -65,16 +79,11 @@ app.post('/login', async (req, res)=>{
         }
         const token = jwt.sign({id: foundUser._id}, 'secret')
         res.cookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, maxAge: 24 * 60 * 60 * 1000})
-        res.status(200).json({user: {name: foundUser.name, email: foundUser.email, role: foundUser.userRole}, token})
+        res.status(200).json({user: {name: foundUser.name, email: foundUser.email, role: foundUser.role}, token})
     } catch (error) {
         res.json(error)
     }
 })
-
-app.post('/logout', (req, res) => {
-  res.clearCookie('token', {httpOnly: true, secure: true, sameSite: 'Strict'});
-  res.status(200).json({ message: 'Logout successful' });
-});
 
 function verifyToken(req, res, next) {
   const token = req.cookies.token;
@@ -93,11 +102,61 @@ app.get('/userinfo', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ role: user.userRole });
+    res.json({ role: user.role });
   } catch (err) {
     res.status(500).json({ message: 'Something went wrong' });
   }
 });
+
+app.get('/logout', (req, res) => {
+  res.clearCookie('token', {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: false
+  });
+  res.status(200).json({ message: "Logged out" });
+});
+
+app.post('/addproduct', verifyToken, async (req, res) => {
+  try {
+    const { itemName, itemDesc, itemPrice } = req.body
+    const itemImage = req.files?.itemImage
+
+    if (!itemImage) {
+      return res.status(400).json({ error: "Please upload product image" })
+    }
+
+    if (!itemName || !itemDesc || !itemPrice) {
+      return res.status(400).json({ error: "All fields are required" })
+    }
+
+    // Create the product first
+    const newProduct = await Product.create({ itemName, itemDesc, itemPrice })
+
+    // Build the image path
+    const imageDir = path.join(__dirname, 'public', 'images', 'products')
+    const imagePath = path.join(imageDir, `${newProduct._id}.jpg`)
+
+    // Move the image
+    await itemImage.mv(imagePath)
+
+    res.status(200).json({ message: "Product uploaded successfully", productId: newProduct._id })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.get('/findAllProducts' , async (req, res) => {
+  try {
+    const products = await Product.find({})
+    res.status(200).json(products)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
 
 
 app.listen(3000, () => {

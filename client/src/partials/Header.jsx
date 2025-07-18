@@ -1,9 +1,26 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { NavLink } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
 
 function Header() {
+
+    const { logout, isLoggedIn } = useContext(AuthContext);
+
+    function handleLogout() {
+        axios.get('http://localhost:3000/logout', { withCredentials: true })
+            .then((res) => {
+                toast.success(res.data.message);
+                logout();
+            })
+            .catch(err => console.error(err));
+    }
+
     return (
         <header className="p-3 mb-3 border-bottom">
+            {" "}
+            <ToastContainer />
             {" "}
             <div className="container">
                 {" "}
@@ -89,16 +106,21 @@ function Header() {
                                 <hr className="dropdown-divider" />
                             </li>{" "}
                             <li>
-                                <a className="dropdown-item" href="#">
-                                    Sign out
-                                </a>
+                                {isLoggedIn ? (
+                                    <a className="dropdown-item" href="#" onClick={handleLogout}>
+                                        Sign out
+                                    </a>
+                                ) : (
+                                    <a className="dropdown-item" href="/login">
+                                        Sign in
+                                    </a>
+                                )}
                             </li>{" "}
                         </ul>{" "}
                     </div>{" "}
                 </div>{" "}
             </div>{" "}
         </header>
-
     )
 }
 
