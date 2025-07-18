@@ -64,7 +64,7 @@ app.post('/login', async(req, res) => {
             return res.status(400).json("Incorrect password")
         }
         jwt.sign({user: foundUser.email}, "secretkey", (err, token) => {
-            res.cookie("token", token, {httpOnly: true, secure: false, sameSite: "none"})
+            res.cookie("token", token, {httpOnly: true, secure: false, sameSite: "lax"})
             return res.status(200).json({userName: foundUser.name, role: foundUser.role, email: foundUser.email, message: "Login success" })
         })
     } catch (error) {
@@ -73,31 +73,46 @@ app.post('/login', async(req, res) => {
 })
 
 // jwt verification middleware function
-const verifyToken = (req, res, next) => {
+const verifyToken = async(req, res, next) => {
     const token = req.cookies.token
     if (!token) {
+        console.log("no token found")
         return res.status(401).json("Unauthorized")
     }
-    jwt.verify(token, "secretkey", (err, user) => {
-        if (err) {
-            return res.status(401).json("Unauthorized")
-        }
-        req.user = user
-        // req.user will add the logged in user to the request
+    try {
+        const decoded = await jwt.verify(token, "secretkey")
+        console.log(decoded)
+        req.user = decoded
         next()
-    })
+    } catch (error) {
+        console.log("catched error")
+        return res.status(401).json("unexpected")
+    }
 }
 
 app.get('/userInfo', verifyToken, async(req, res) => {
     try {
         const user = await User.findOne({ email: req.user.user })
-        console.log(user)
+        if(!user) {
+            return res.status(401).json("Unauthorized")
+        }
         return res.status(200).json({role: user.role, email: user.email})
     } catch (error) {
+        console.log("triggered")
         res.status(500).json("internal server error")
     }
 })
 
+
+app.get('/logout', (req, res)=>{
+    res.clearCookie("token", {
+        path:'/',
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax"
+    })
+    return res.status(200).json("Logout success")
+})
 
 app.listen(3000, () => {
     console.log('Example app listening on port 3000!')

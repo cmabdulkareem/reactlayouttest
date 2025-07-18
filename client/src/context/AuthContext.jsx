@@ -15,12 +15,10 @@ function AuthProvider({ children }) {
             // withCredentials: true is used to send the cookie to the server
             // this is used to check if the user is logged in or not on every page reload
             .then((res) => {
-                console.log(res)
                 setIsLoggedIn(true)
                 setIsAdmin(res.data.role == 'admin')
             })
             .catch((err) => {
-                console.log(err)
                 setIsLoggedIn(false)
                 setIsAdmin(false)
             })
@@ -32,8 +30,11 @@ function AuthProvider({ children }) {
     const login = (role) => {
         setIsLoggedIn(true)
         setIsAdmin(role == 'admin')
-        console.log(isLoggedIn)
     }
+
+    useEffect(()=>{
+        console.log(isLoggedIn)
+    }, [isLoggedIn])
     // purpose of this function is to login the user
     // this can be consumed by the login component
 

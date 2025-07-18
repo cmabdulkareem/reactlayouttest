@@ -1,7 +1,27 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
+import React, {use, useContext} from 'react'
+import { Navigate, NavLink, useNavigate } from 'react-router-dom'
+import {AuthContext} from '../context/AuthContext'
+import axios from 'axios'
 
 function Header() {
+    const navigate = useNavigate()
+
+    const {isLoggedIn, logout} = useContext(AuthContext)
+
+    function handleSignOut(){
+        axios.get('http://localhost:3000/logout', {withCredentials: true})
+        .then((res)=>{
+            logout()
+            navigate('/')
+        }).catch((err)=>{
+            console.log(err)
+        })
+    }
+
+    function handleSignIn(){
+        navigate('/login')
+    }
+
     return (
         <header className="p-3 mb-3 border-bottom">
             {" "}
@@ -89,16 +109,15 @@ function Header() {
                                 <hr className="dropdown-divider" />
                             </li>{" "}
                             <li>
-                                <a className="dropdown-item" href="#">
-                                    Sign out
-                                </a>
+                                {isLoggedIn ? (<a className="dropdown-item" href="#" onClick={handleSignOut}>Sign out</a>)
+                                 : 
+                                 (<a className="dropdown-item" href="#" onClick={handleSignIn}>Sign in</a>)}
                             </li>{" "}
                         </ul>{" "}
                     </div>{" "}
                 </div>{" "}
             </div>{" "}
         </header>
-
     )
 }
 

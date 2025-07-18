@@ -1,14 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Navigate } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
 
 function AdminRoutes(props) {
 
-    const [isLoggedIn, setIsLoggedIn] = useState(true)
-    const [isAdmin, setIsAdmin] = useState(false)
+  const {isLoggedIn, isAdmin} = useContext(AuthContext)
     
   return (
-    <div>
-      {isLoggedIn ? (
+      isLoggedIn ? (
         isAdmin ? (
           props.children
         ) : (
@@ -16,8 +15,7 @@ function AdminRoutes(props) {
         )
       )
       :
-      (<Navigate to="/login" />)}
-    </div>
+      (<Navigate to="/login" />)
   )
 }
 
