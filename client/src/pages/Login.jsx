@@ -14,10 +14,6 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // if(!isLoggedIn){
-  //   navigate('/login')
-  // }
-
   function handleSubmit(e){
     e.preventDefault()
     axios.post('http://localhost:3000/login', {email, password}, {withCredentials: true})

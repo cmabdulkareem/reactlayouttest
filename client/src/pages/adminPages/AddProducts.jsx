@@ -1,8 +1,57 @@
+import axios from 'axios'
+import { handle } from 'express/lib/application'
 import React, { useState } from 'react'
 
 function AddProducts() {
 
     const [image, setImage] = useState("/")
+
+    const [formData, setFormData] = useState({})
+    function handleChange(e){
+        const {name, value} = e.target
+        // this will extract the name and value of the input from the event happeningfield
+        setFormData((prevValue) => ({
+            ...prevValue,
+            [name]: value
+            // {   , name: value}   // initially
+            // {itemName: 'apple', name: value}
+        }))
+    }
+
+
+
+    function handleSubmit(e){
+        e.preventDefault()
+
+        try {
+            const data = new FormData()
+            data.append('itemName', formData.itemName)
+            data.append('itemDesc', formData.itemDesc)
+            data.append('itemPrice', formData.itemPrice)
+            if(image){
+                data.append('image', image)
+            }
+            axios.post('http://localhost:3000/addProduct', data, 
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                        // here we are saying that the form contains a file
+                    }, 
+                    withCredentials: true
+                    // this is to send the cookie along with the post request
+                }
+            )
+                .then((res) => {
+                    console.log(res.data)
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    
 
 
     return (
@@ -12,7 +61,7 @@ function AddProducts() {
             </div>
             <div className="row">
                 <div className="col-6">
-                    <form className="needs-validation" >
+                    <form className="needs-validation" onSubmit={handleSubmit}>
                         <div className="row g-3">
                             <div className="col-sm-12">
                                 <label htmlFor="itemName" className="form-label">
@@ -23,6 +72,9 @@ function AddProducts() {
                                     className="form-control"
                                     id="itemName"
                                     placeholder="Enter Item Name"
+                                    name='itemName'
+                                    onChange={handleChange}
+                                    value={formData.itemName}
                                     required
                                 />{" "}
                             </div>{" "}
@@ -38,6 +90,9 @@ function AddProducts() {
                                     id="itemName"
                                     placeholder="Enter Item Description"
                                     required
+                                    name='itemDesc'
+                                    onChange={handleChange}
+                                    value={formData.itemDesc}
                                 />{" "}
                             </div>{" "}
                         </div>{" "}
@@ -51,6 +106,9 @@ function AddProducts() {
                                     className="form-control"
                                     id="itemPrice"
                                     placeholder="Enter Item Price"
+                                    onChange={handleChange}
+                                    value={formData.itemPrice}
+                                    name='itemPrice'
                                     required
                                 />{" "}
                             </div>{" "}
@@ -60,21 +118,17 @@ function AddProducts() {
                                 <label htmlFor="itemImage" className="form-label">
                                     Upload Image
                                 </label>
-                                <input
-                                    type="file"
-                                    className="form-control"
-                                    id="itemImage"
-                                    placeholder="Upload file"
+                                <input type="file" className="form-control" id="itemImage" placeholder="Upload file"
                                     onChange={(e) => {
                                         setImage(e.target.files[0])
                                         if (e.target.files[0]) {
-                                            setImage(URL.createObjectURL(e.target.files[0]))
+                                            setImage(URL.createObjectURL(e.target.files[0])) // this is to display uploaded image by creating a URL
                                         }
                                     }
                                     }
                                     required
-                                />{" "}
-                            </div>{" "}
+                                />
+                            </div>
                         </div>{" "}
                         <div className="row mt-4">
                             <div className="col-6">

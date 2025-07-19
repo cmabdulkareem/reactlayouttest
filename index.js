@@ -64,8 +64,8 @@ app.post('/login', async(req, res) => {
             return res.status(400).json("Incorrect password")
         }
         jwt.sign({user: foundUser.email}, "secretkey", (err, token) => {
-            res.cookie("token", token, {httpOnly: true, secure: false, sameSite: "lax"})
-            return res.status(200).json({userName: foundUser.name, role: foundUser.role, email: foundUser.email, message: "Login success" })
+            res.cookie("token", token, {httpOnly: true, sameSite: 'lax', secure: false, maxAge: 24 * 60 * 60 * 1000})
+            return res.status(200).json({user: {name: foundUser.name, email: foundUser.email, role: foundUser.role}, token})
         })
     } catch (error) {
         res.status(500).json("internal server error")
@@ -76,16 +76,13 @@ app.post('/login', async(req, res) => {
 const verifyToken = async(req, res, next) => {
     const token = req.cookies.token
     if (!token) {
-        console.log("no token found")
         return res.status(401).json("Unauthorized")
     }
     try {
         const decoded = await jwt.verify(token, "secretkey")
-        console.log(decoded)
         req.user = decoded
         next()
     } catch (error) {
-        console.log("catched error")
         return res.status(401).json("unexpected")
     }
 }
@@ -98,7 +95,6 @@ app.get('/userInfo', verifyToken, async(req, res) => {
         }
         return res.status(200).json({role: user.role, email: user.email})
     } catch (error) {
-        console.log("triggered")
         res.status(500).json("internal server error")
     }
 })
